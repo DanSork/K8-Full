@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: yelb-config
+  namespace: yelb
+data:
+  RACK_ENV: "custom"
+  APP_SERVER_HOSTNAME: "yelb-appserver"
+  REDIS_SERVER_ENDPOINT: "redis-server"
+  YELB_DB_SERVER_ENDPOINT: "yelb-db"
+ 
