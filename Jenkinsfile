@@ -10,23 +10,26 @@ pipeline {
         }
 
         stage('Validate Schema') {
-            agent {
-                docker {
-                    image 'ghcr.io/yannh/kubeconform:v0.6.6-alpine'
-                    args '--entrypoint=/bin/sh'
-    }
-}
-    steps {
-        sh 'kubeconform $(find . -name "*.yml" -not -path "./docker-jenkins/*")'
-    }
-}
+            agent any
+            steps {
+                sh '''
+                    HOST_WORKSPACE="/var/lib/docker/volumes/docker-jenkins_jenkins_home/_data/workspace/local-test"
+                    docker run --rm -v "$HOST_WORKSPACE:/work" -w /work \
+                        ghcr.io/yannh/kubeconform:v0.6.6-alpine \
+                        $(find /work -name "*.yml" -not -path "/work/docker-jenkins/*")
+                '''
+            }
+        }
 
         stage('Lint') {
-            agent {
-                docker { image 'stackrox/kube-linter:v0.8.3' }
-            }
+            agent any
             steps {
-                sh 'kube-linter lint $(find . -name "*.yml" -not -path "./docker-jenkins/*")'
+                sh '''
+                    HOST_WORKSPACE="/var/lib/docker/volumes/docker-jenkins_jenkins_home/_data/workspace/local-test"
+                    docker run --rm -v "$HOST_WORKSPACE:/work" -w /work \
+                        stackrox/kube-linter:v0.8.3 \
+                        lint $(find /work -name "*.yml" -not -path "/work/docker-jenkins/*")
+                '''
             }
         }
     }
