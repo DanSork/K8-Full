@@ -10,12 +10,12 @@ pipeline {
         }
 
         stage('Validate Schema') {
-    agent {
-        docker {
-            image 'ghcr.io/yannh/kubeconform:v0.6.6-alpine'
-            args '--entrypoint=""'
-        }
+            agent {
+                docker {
+                    image 'ghcr.io/yannh/kubeconform:v0.6.6-alpine'
+                    args '--entrypoint=/bin/sh'
     }
+}
     steps {
         sh 'kubeconform $(find . -name "*.yml" -not -path "./docker-jenkins/*")'
     }
