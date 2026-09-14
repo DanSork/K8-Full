@@ -14,9 +14,9 @@ pipeline {
             steps {
                 sh '''
                     HOST_WORKSPACE="/var/lib/docker/volumes/docker-jenkins_jenkins_home/_data/workspace/local-test"
-                    docker run --rm -v "$HOST_WORKSPACE:/work" -w /work \
+                    docker run --rm -v "$HOST_WORKSPACE:/work" -w /work --entrypoint=/bin/sh \
                         ghcr.io/yannh/kubeconform:v0.6.6-alpine \
-                        $(find /work -name "*.yml" -not -path "/work/docker-jenkins/*")
+                        -c 'find . -name "*.yml" -not -path "./docker-jenkins/*" | xargs /kubeconform'
                 '''
             }
         }
