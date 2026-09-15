@@ -1,36 +1,30 @@
 pipeline {
-    agent none
-
+    agent any
+    environment {
+        IMAGE_TAG = "${env.GIT_COMMIT}"
+    }
     stages {
         stage('Checkout') {
-            agent any
             steps {
                 checkout scm
             }
         }
-
-        stage('Validate Schema') {
-            agent any
+        stage('Build Frontend Image') {
             steps {
-                sh '''
-                    HOST_WORKSPACE="/var/lib/docker/volumes/docker-jenkins_jenkins_home/_data/workspace/local-test"
-                    docker run --rm -v "$HOST_WORKSPACE:/work" -w /work --entrypoint=/bin/sh \
-                        ghcr.io/yannh/kubeconform:v0.6.6-alpine \
-                        -c 'find . -name "*.yml" -not -path "./docker-jenkins/*" | xargs /kubeconform'
-                '''
+                sh 'docker build -t yelb-ui:${IMAGE_TAG} ./Frontend'
             }
         }
-
-        stage('Lint') {
-            agent any
+        stage('Deploy') {
             steps {
-                sh '''
-                    HOST_WORKSPACE="/var/lib/docker/volumes/docker-jenkins_jenkins_home/_data/workspace/local-test"
-                    docker run --rm -v "$HOST_WORKSPACE:/work" -w /work \
-                        stackrox/kube-linter:v0.8.3 \
-                        lint $(find /work -name "*.yml" -not -path "/work/docker-jenkins/*")
-                '''
+                sh 'kubectl set image deployment/yelb-ui yelb-ui=yelb-ui:${IMAGE_TAG} -n yelb'
+                sh 'kubectl rollout status deployment/yelb-ui -n yelb --timeout=60s'
+            }
+        }
+        stage('Smoke Test') {
+            steps {
+                sh 'curl -f http://localhost:80'
             }
         }
     }
 }
+
