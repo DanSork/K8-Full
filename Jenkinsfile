@@ -52,8 +52,8 @@ pipeline {
 
         stage('Smoke Test') {
             steps {
-                sh 'curl -f http://localhost:8888'
-            }
-        }
+                sh 'kubectl run curl-test-${BUILD_NUMBER} --image=curlimages/curl -n yelb --rm --restart=Never --attach -- curl -f http://yelb-ui:80/'
+    }
+}
     }
 }
