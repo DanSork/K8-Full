@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_TAG = "${env.GIT_COMMIT}"
+        KUBECONFIG = '/var/jenkins_home/.kube/config'
     }
 
     stages {
